@@ -208,3 +208,11 @@ __marimo__/
 
 # LangGraph
 .langgraph_api
+
+# PostgreSQL data directory (Docker volume)
+postgres_data/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride

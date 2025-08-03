@@ -1,13 +1,13 @@
 # 🧠🤖Deep Agents
 
 Using an LLM to call tools in a loop is the simplest form of an agent. 
-This architecture, however, can yield agents that are “shallow” and fail to plan and act over longer, more complex tasks. 
-Applications like “Deep Research”, "Manus", and “Claude Code” have gotten around this limitation by implementing a combination of four things:
-a **planning tool**, **sub agents**, access to a **file system**, and a **detailed prompt**.
+This architecture, however, can yield agents that are "shallow" and fail to plan and act over longer, more complex tasks. 
+Applications like "Deep Research", "Manus", and "Claude Code" have gotten around this limitation by implementing a combination of four things:
+a **planning tool**, **sub agents**, access to **persistent storage**, and a **detailed prompt**.
 
 <img src="deep_agents.png" alt="deep agent" width="600"/>
 
-`deepagents` is a Python package that implements these in a general purpose way so that you can easily create a Deep Agent for your application.
+`deepagents` is a Python package that implements these in a general purpose way so that you can easily create a Deep Agent for your application. This version has been modified to use **PostgreSQL database tools** instead of file system tools for more robust data persistence and querying capabilities.
 
 **Acknowledgements: This project was primarily inspired by Claude Code, and initially was largely an attempt to see what made Claude Code general purpose, and make it even more so.**
 
@@ -18,6 +18,44 @@ pip install deepagents
 ```
 
 ## Usage
+
+### Basic PostgreSQL Agent Example
+
+```python
+import os
+from deepagents import create_deep_agent
+
+# Database connection string - modify to match your PostgreSQL setup
+db_connection_string = os.getenv(
+    "DATABASE_URL", 
+    "postgresql://username:password@localhost:5432/your_database"
+)
+
+# Instructions for the database agent
+instructions = """You are a database analyst that helps users explore and analyze their PostgreSQL database.
+
+You can:
+- Query data from tables using postgres_query (SELECT statements only)
+- Explore database schema using postgres_schema
+- Analyze tables and get insights using postgres_analyze
+- Plan and track complex analysis tasks using write_todos
+
+Always use postgres_schema first to understand the database structure before writing queries.
+All operations are read-only - you cannot modify the database in any way.
+"""
+
+# Create the agent with PostgreSQL tools
+agent = create_deep_agent(
+    tools=[],  # No additional tools needed for basic database operations
+    instructions=instructions,
+    db_connection_string=db_connection_string
+)
+
+# Invoke the agent
+result = agent.invoke({"messages": [{"role": "user", "content": "Show me all tables and their schemas"}]})
+```
+
+### Research Agent with Database Storage
 
 (To run the example below, will need to `pip install tavily-python`)
 
@@ -49,21 +87,26 @@ def internet_search(
 # Prompt prefix to steer the agent to be an expert researcher
 research_instructions = """You are an expert researcher. Your job is to conduct thorough research, and then write a polished report.
 
-You have access to a few tools.
+You have access to internet search tools and can store research findings in the database.
 
 ## `internet_search`
 
 Use this to run an internet search for a given query. You can specify the number of results, the topic, and whether raw content should be included.
+
+## Database Tools
+
+You can analyze research data stored in the PostgreSQL database using read-only database tools.
 """
 
-# Create the agent
+# Create the agent with both search and database capabilities
 agent = create_deep_agent(
     [internet_search],
     research_instructions,
+    db_connection_string="postgresql://user:password@localhost:5432/research_db"
 )
 
 # Invoke the agent
-result = agent.invoke({"messages": [{"role": "user", "content": "what is langgraph?"}]})
+result = agent.invoke({"messages": [{"role": "user", "content": "Research LangGraph and analyze any related data in the database"}]})
 ```
 
 See [examples/research/research_agent.py](examples/research/research_agent.py) for a more complex example.
@@ -73,7 +116,7 @@ in the same way you would any LangGraph agent.
 
 ## Creating a custom deep agent
 
-There are three parameters you can pass to `create_deep_agent` to create your own custom deep agent.
+There are several parameters you can pass to `create_deep_agent` to create your own custom deep agent.
 
 ### `tools` (Required)
 
@@ -129,6 +172,21 @@ agent = create_deep_agent(
 By default, `deepagents` will use `"claude-sonnet-4-20250514"`. If you want to use a different model,
 you can pass a [LangChain model object](https://python.langchain.com/docs/integrations/chat/).
 
+### `db_connection_string` (Optional)
+
+A PostgreSQL connection string to enable database tools. When provided, the agent will have access to `postgres_query`, `postgres_execute`, and `postgres_schema` tools.
+
+Format: `"postgresql://username:password@host:port/database_name"`
+
+Example:
+```python
+agent = create_deep_agent(
+    tools=[],
+    instructions="Database assistant instructions...",
+    db_connection_string="postgresql://user:password@localhost:5432/mydb"
+)
+```
+
 ## Deep Agent Details
 
 The below components are built into `deepagents` and helps make it work for deep tasks off-the-shelf.
@@ -148,28 +206,36 @@ The importance of prompting for creating a "deep" agent cannot be understated.
 `deepagents` comes with a built-in planning tool. This planning tool is very simple and is based on ClaudeCode's TodoWrite tool.
 This tool doesn't actually do anything - it is just a way for the agent to come up with a plan, and then have that in the context to help keep it on track.
 
-### File System Tools
+### PostgreSQL Database Tools (Read-Only)
 
-`deepagents` comes with four built-in file system tools: `ls`, `edit_file`, `read_file`, `write_file`.
-These do not actually use a file system - rather, they mock out a file system using LangGraph's State object.
-This means you can easily run many of these agents on the same machine without worrying that they will edit the same underlying files.
+`deepagents` comes with three built-in PostgreSQL database tools for read-only operations: `postgres_query`, `postgres_schema`, `postgres_analyze`.
+These tools connect to a real PostgreSQL database for robust data analysis and exploration capabilities.
 
-Right now the "file system" will only be one level deep (no sub directories).
+- **`postgres_query`**: Execute SELECT queries to retrieve data from the database (read-only, no modifications allowed)
+- **`postgres_schema`**: Get schema information about database tables and columns  
+- **`postgres_analyze`**: Perform analysis on tables to get insights, statistics, row counts, and data distribution
 
-These files can be passed in (and also retrieved) by using the `files` key in the LangGraph State object.
+The database connection is established at startup by passing a `db_connection_string` parameter to `create_deep_agent`.
+
+**Security**: All database operations are strictly read-only. Any attempt to modify the database (INSERT, UPDATE, DELETE, CREATE, DROP, etc.) will be blocked and result in an error.
 
 ```python
-agent = create_deep_agent(...)
+# Database connection string format
+db_connection_string = "postgresql://username:password@host:port/database_name"
 
+agent = create_deep_agent(
+    tools=[],
+    instructions="...",
+    db_connection_string=db_connection_string
+)
+
+# The agent will automatically have access to all PostgreSQL tools
 result = agent.invoke({
-    "messages": ...,
-    # Pass in files to the agent using this key
-    # "files": {"foo.txt": "foo", ...}
+    "messages": [{"role": "user", "content": "Show me all tables in the database"}]
 })
-
-# Access any files afterwards like this
-result["files"]
 ```
+
+**Requirements**: You need to have PostgreSQL installed and running, with the database credentials accessible to the agent.
 
 ### Sub Agents
 

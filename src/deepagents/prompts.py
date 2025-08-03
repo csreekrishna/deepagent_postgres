@@ -255,23 +255,48 @@ Since the user is greeting, use the greeting-responder agent to respond with a f
 </commentary>
 assistant: "I'm going to use the Task tool to launch with the greeting-responder agent"
 </example>"""
-EDIT_DESCRIPTION = """Performs exact string replacements in files. 
+POSTGRES_QUERY_DESCRIPTION = """Execute a SELECT query against the PostgreSQL database connected at startup.
 
 Usage:
-- You must use your `Read` tool at least once in the conversation before editing. This tool will error if you attempt an edit without reading the file. 
-- When editing text from Read tool output, ensure you preserve the exact indentation (tabs/spaces) as it appears AFTER the line number prefix. The line number prefix format is: spaces + line number + tab. Everything after that tab is the actual file content to match. Never include any part of the line number prefix in the old_string or new_string.
-- ALWAYS prefer editing existing files. NEVER write new files unless explicitly required.
-- Only use emojis if the user explicitly requests it. Avoid adding emojis to files unless asked.
-- The edit will FAIL if `old_string` is not unique in the file. Either provide a larger string with more surrounding context to make it unique or use `replace_all` to change every instance of `old_string`. 
-- Use `replace_all` for replacing and renaming strings across the file. This parameter is useful if you want to rename a variable for instance."""
-TOOL_DESCRIPTION = """Reads a file from the local filesystem. You can access any file directly by using this tool.
-Assume this tool is able to read all files on the machine. If the User provides a path to a file assume that path is valid. It is okay to read a file that does not exist; an error will be returned.
+- Use this tool for querying data from the database (SELECT statements only)
+- Also supports WITH (CTE) and EXPLAIN queries for analysis
+- Queries are automatically limited to 1000 rows unless LIMIT is explicitly specified
+- Results are formatted as a tab-separated table with column headers
+- The database connection must be established at startup of the deep agent
+- Returns formatted query results or error messages
+- SECURITY: Modification operations (INSERT, UPDATE, DELETE, DROP, etc.) are strictly forbidden
+
+Example queries:
+- SELECT * FROM users WHERE active = true
+- SELECT name, email FROM customers ORDER BY created_at DESC LIMIT 50
+- SELECT COUNT(*) FROM orders WHERE status = 'completed'
+- WITH monthly_sales AS (SELECT ...) SELECT * FROM monthly_sales
+- EXPLAIN SELECT * FROM large_table WHERE indexed_column = 'value'"""
+
+POSTGRES_SCHEMA_DESCRIPTION = """Get schema information for PostgreSQL database tables.
 
 Usage:
-- The file_path parameter must be an absolute path, not a relative path
-- By default, it reads up to 2000 lines starting from the beginning of the file
-- You can optionally specify a line offset and limit (especially handy for long files), but it's recommended to read the whole file by not providing these parameters
-- Any lines longer than 2000 characters will be truncated
-- Results are returned using cat -n format, with line numbers starting at 1
-- You have the capability to call multiple tools in a single response. It is always better to speculatively read multiple files as a batch that are potentially useful. 
-- If you read a file that exists but has empty contents you will receive a system reminder warning in place of file contents."""
+- Call with no parameters to list all available tables
+- Call with table_name parameter to get detailed column information for a specific table
+- Returns table names, column names, data types, nullable status, and default values
+- Helps understand database structure before writing queries
+- Read-only operation that does not modify the database
+
+Examples:
+- postgres_schema() - Lists all tables in the database
+- postgres_schema(table_name='users') - Shows schema for the 'users' table"""
+
+POSTGRES_ANALYZE_DESCRIPTION = """Perform analysis on PostgreSQL database tables to get insights and statistics.
+
+Usage:
+- Call with no parameters to get database overview with table sizes
+- Call with table_name to analyze a specific table
+- Use analysis_type='basic' for row counts, sizes, and column statistics
+- Use analysis_type='detailed' for comprehensive column analysis with sample data
+- Returns formatted analysis results including row counts, data distribution, and table sizes
+- Read-only operation that does not modify the database
+
+Examples:
+- postgres_analyze() - Database overview with all tables and sizes
+- postgres_analyze(table_name='users') - Basic analysis of the users table
+- postgres_analyze(table_name='orders', analysis_type='detailed') - Detailed analysis with sample data"""
