@@ -5,9 +5,51 @@ This architecture, however, can yield agents that are "shallow" and fail to plan
 Applications like "Deep Research", "Manus", and "Claude Code" have gotten around this limitation by implementing a combination of core components:
 a **planning tool**, **sub agents**, access to **persistent storage**, a **detailed prompt**, and **comprehensive observability**.
 
-> **Note:** The architectural diagram below shows the original file system version. This PostgreSQL version replaces file system tools with read-only database tools (`postgres_query`, `postgres_schema`, `postgres_analyze`) and adds Phoenix tracing for full observability of LLM calls, tool executions, and database operations.
+```mermaid
+graph TB
+    User[👤 User Input] --> Agent[🧠 DeepAgent LLM]
+    
+    Agent --> Planning[📋 Planning Tool<br/>write_todos]
+    Agent --> SubAgent[🤖 Sub Agents<br/>Context Quarantine]
+    Agent --> DBTools[🗄️ PostgreSQL Tools]
+    Agent --> CustomTools[🔧 Custom Tools]
+    
+    DBTools --> Query[📊 postgres_query<br/>SELECT operations only]
+    DBTools --> Schema[📋 postgres_schema<br/>Table structure info]
+    DBTools --> Analyze[📈 postgres_analyze<br/>Statistics & insights]
+    
+    Query --> DB[(🗃️ PostgreSQL Database<br/>Read-Only Access)]
+    Schema --> DB
+    Analyze --> DB
+    
+    %% Phoenix Tracing Layer
+    Agent -.-> Phoenix[🔭 Phoenix Tracing]
+    Planning -.-> Phoenix
+    SubAgent -.-> Phoenix
+    DBTools -.-> Phoenix
+    CustomTools -.-> Phoenix
+    
+    Phoenix --> Dashboard[📊 Phoenix Dashboard<br/>localhost:6006]
+    Phoenix --> Traces[📈 LLM Calls<br/>Tool Executions<br/>DB Operations<br/>Performance Metrics]
+    
+    %% Styling
+    classDef llm fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    classDef tools fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef db fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef tracing fill:#fff3e0,stroke:#e65100,stroke-width:2px,stroke-dasharray: 5 5
+    
+    class Agent llm
+    class Planning,SubAgent,DBTools,CustomTools,Query,Schema,Analyze tools
+    class DB db
+    class Phoenix,Dashboard,Traces tracing
+```
 
-<img src="deep_agents.png" alt="deep agent architecture - original file system version" width="600"/>
+**Current Architecture Features:**
+- **🧠 LLM-Powered Agent** with detailed system prompts
+- **📋 Planning Tool** for task breakdown and tracking  
+- **🤖 Sub Agents** for context quarantine and specialized tasks
+- **🗄️ PostgreSQL Tools** for read-only database operations
+- **🔭 Phoenix Tracing** for comprehensive observability
 
 `deepagents` is a Python package that implements these components in a general purpose way so that you can easily create a Deep Agent for your application. This version has been transformed to use **PostgreSQL database tools** with **Phoenix tracing** for robust data analysis and comprehensive observability.
 
