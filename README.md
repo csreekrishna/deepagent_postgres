@@ -2,12 +2,14 @@
 
 Using an LLM to call tools in a loop is the simplest form of an agent. 
 This architecture, however, can yield agents that are "shallow" and fail to plan and act over longer, more complex tasks. 
-Applications like "Deep Research", "Manus", and "Claude Code" have gotten around this limitation by implementing a combination of four things:
-a **planning tool**, **sub agents**, access to **persistent storage**, and a **detailed prompt**.
+Applications like "Deep Research", "Manus", and "Claude Code" have gotten around this limitation by implementing a combination of core components:
+a **planning tool**, **sub agents**, access to **persistent storage**, a **detailed prompt**, and **comprehensive observability**.
 
-<img src="deep_agents.png" alt="deep agent" width="600"/>
+> **Note:** The architectural diagram below shows the original file system version. This PostgreSQL version replaces file system tools with read-only database tools (`postgres_query`, `postgres_schema`, `postgres_analyze`) and adds Phoenix tracing for full observability of LLM calls, tool executions, and database operations.
 
-`deepagents` is a Python package that implements these in a general purpose way so that you can easily create a Deep Agent for your application. This version has been modified to use **PostgreSQL database tools** instead of file system tools for more robust data persistence and querying capabilities.
+<img src="deep_agents.png" alt="deep agent architecture - original file system version" width="600"/>
+
+`deepagents` is a Python package that implements these components in a general purpose way so that you can easily create a Deep Agent for your application. This version has been transformed to use **PostgreSQL database tools** with **Phoenix tracing** for robust data analysis and comprehensive observability.
 
 **Acknowledgements: This project was primarily inspired by Claude Code, and initially was largely an attempt to see what made Claude Code general purpose, and make it even more so.**
 
