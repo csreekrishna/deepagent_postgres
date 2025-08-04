@@ -54,7 +54,7 @@ start_backend() {
 start_frontend() {
     print_info "Starting Chat UI on port $UI_PORT..."
     cd "$UI_DIR"
-    npm run dev -- --port $UI_PORT &
+    npm run dev &
     FRONTEND_PID=$!
     echo $FRONTEND_PID > ../.frontend.pid
     cd ..

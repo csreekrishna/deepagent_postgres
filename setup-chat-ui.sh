@@ -172,7 +172,7 @@ workflow.set_finish_point("agent")
 graph = workflow.compile()
 EOF
 
-# Create .env file for backend
+# Create .env file for backend (both locations)
 if [ ! -f .env ]; then
     cat > .env << EOF
 # Database Configuration
@@ -193,6 +193,12 @@ EOF
     print_warning "Please edit .env file with your API keys"
 else
     print_success "Backend .env file already exists"
+fi
+
+# Copy .env to chat UI directory for LangGraph CLI
+if [ -f .env ]; then
+    cp .env "$UI_DIR/.env"
+    print_success ".env copied to chat UI directory"
 fi
 
 print_success "Backend configuration complete"
