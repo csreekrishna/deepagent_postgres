@@ -129,19 +129,17 @@ cd deepagent_postgres
 # 2. Set up Python environment
 pip install -e .
 
-# 3. Set up Node.js environment  
-cd agent-chat-app
-npm install
+# 3. Set up Chat Interface (uses official LangChain Agent Chat UI)
+./setup-chat-ui.sh
 
-# 4. Configure environment variables
-cp .env.example .env
-# Edit .env with your API keys and database connection
+# 4. Configure your API keys
+# Edit .env file with your OpenAI or Anthropic API key
 
-# 5. Start the chat interface
-npm run dev
+# 5. Start both frontend and backend
+./start-deepagent-chat.sh
 ```
 
-Access the chat interface at **http://localhost:3000** (or http://localhost:3001 if port 3000 is in use)
+Access the chat interface at **http://localhost:3000**
 
 ### Option 2: Python API (Advanced Users)
 
@@ -193,11 +191,13 @@ docker exec deepagent-postgres psql -U deepagent -d deepagent_test -f /tmp/sampl
 
 ### Chat Interface Usage
 
-Once you've started the chat interface (`npm run dev`), visit **http://localhost:3000** (or the port shown in your terminal if 3000 is occupied) and configure:
+Once you've started the chat interface (`./start-deepagent-chat.sh`), visit **http://localhost:3000** and configure:
 
 1. **Deployment URL**: `http://localhost:2024`
 2. **Assistant ID**: `deepagent_postgres` 
 3. **LangSmith API Key**: Leave empty for local development
+
+The setup script automatically configures these values, but you can change them if needed.
 
 **Sample Chat Conversations:**
 
@@ -612,7 +612,7 @@ docker exec deepagent-postgres psql -U deepagent -d deepagent_test -f /tmp/sampl
 **Docker Deployment:**
 ```bash
 # Build production image
-cd agent-chat-app
+cd deepagent-chat-ui
 docker build -t deepagent-chat .
 
 # Run with environment variables
@@ -700,10 +700,10 @@ git clone https://github.com/csreekrishna/deepagent_postgres.git
 cd deepagent_postgres
 pip install -e ".[dev]"
 
-# Set up chat interface for development
-cd agent-chat-app
-npm install
-npm run dev
+# Set up chat interface for development  
+./setup-chat-ui.sh
+# Edit .env with your API keys
+./start-deepagent-chat.sh
 ```
 
 ### Areas We Need Help With
