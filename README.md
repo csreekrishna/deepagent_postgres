@@ -10,7 +10,7 @@ a **planning tool**, **sub agents**, access to **persistent storage**, a **detai
 ## 🚀 Two Ways to Use DeepAgent
 
 ### 💬 Chat Interface (Recommended)
-- **Modern chat UI** at http://localhost:3000
+- **Modern chat UI** at http://localhost:3000 (or http://localhost:3001 if port 3000 is in use)
 - **Natural language** database queries and analysis
 - **Real-time** conversation with your PostgreSQL database
 - **Visual interface** for complex data exploration workflows
@@ -141,7 +141,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Access the chat interface at **http://localhost:3000**
+Access the chat interface at **http://localhost:3000** (or http://localhost:3001 if port 3000 is in use)
 
 ### Option 2: Python API (Advanced Users)
 
@@ -193,7 +193,7 @@ docker exec deepagent-postgres psql -U deepagent -d deepagent_test -f /tmp/sampl
 
 ### Chat Interface Usage
 
-Once you've started the chat interface (`npm run dev`), visit **http://localhost:3000** and configure:
+Once you've started the chat interface (`npm run dev`), visit **http://localhost:3000** (or the port shown in your terminal if 3000 is occupied) and configure:
 
 1. **Deployment URL**: `http://localhost:2024`
 2. **Assistant ID**: `deepagent_postgres` 

@@ -76,12 +76,12 @@ npm run dev
 ```
 
 This starts:
-- **Web UI**: http://localhost:3000
+- **Web UI**: http://localhost:3000 (or http://localhost:3001 if port 3000 is in use)
 - **LangGraph API**: http://localhost:2024
 
 ### 5. Access Chat Interface
 
-1. Open http://localhost:3000 in your browser
+1. Open http://localhost:3000 in your browser (or the port shown in your terminal if 3000 is occupied)
 2. Configure the chat interface:
    - **Deployment URL**: `http://localhost:2024`
    - **Assistant ID**: `deepagent_postgres`
