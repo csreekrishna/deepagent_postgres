@@ -297,6 +297,76 @@ You can also specify [custom sub agents](#subagents--optional-) with their own i
 Sub agents are useful for ["context quarantine"](https://www.dbreunig.com/2025/06/26/how-to-fix-your-context.html#context-quarantine) (to help not pollute the overall context of the main agent)
 as well as custom instructions.
 
+## Phoenix Tracing Integration
+
+DeepAgent now includes **Phoenix by Arize AI** tracing for comprehensive observability of LLM calls, tool executions, and PostgreSQL operations.
+
+### Automatic Tracing Setup
+
+Phoenix tracing is enabled by default when creating a DeepAgent:
+
+```python
+from deepagents import create_deep_agent
+
+# Tracing is automatically enabled
+agent = create_deep_agent(
+    tools=[],
+    instructions="Your database analyst instructions...",
+    db_connection_string="postgresql://user:password@localhost:5432/db",
+    enable_tracing=True,  # Default: True
+    tracing_project_name="my-project"  # Default: "deepagent-postgres"
+)
+```
+
+### Manual Phoenix Server Control
+
+```python
+from deepagents import start_phoenix_server, get_phoenix_url, PhoenixTracer
+
+# Start Phoenix server manually
+start_phoenix_server(port=6006)
+print(f"Phoenix dashboard: {get_phoenix_url()}")
+
+# Or use context manager for automatic cleanup
+with PhoenixTracer(project_name="my-analysis") as tracer:
+    agent = create_deep_agent(tools=[], instructions="...")
+    result = agent.invoke({"messages": [{"role": "user", "content": "Analyze database"}]})
+```
+
+### What Gets Traced
+
+Phoenix automatically traces:
+- **LLM calls** (OpenAI GPT-4o, Anthropic Claude)
+- **Tool executions** (postgres_query, postgres_schema, postgres_analyze, write_todos)
+- **Database operations** with query details and performance metrics
+- **Agent workflows** and sub-agent spawning
+- **Error handling** and exception details
+
+### Viewing Traces
+
+1. Phoenix dashboard runs at `http://localhost:6006` by default
+2. View real-time traces, spans, and performance metrics
+3. Analyze LLM token usage and costs
+4. Debug tool execution flows and database queries
+5. Monitor agent performance and identify bottlenecks
+
+### Dependencies
+
+Phoenix tracing requires these additional dependencies (auto-installed):
+- `arize-phoenix[evals]>=4.0.0`
+- `openinference-instrumentation-langchain>=0.1.0`
+
+### Disabling Tracing
+
+```python
+# Disable tracing for performance-critical applications
+agent = create_deep_agent(
+    tools=[],
+    instructions="...",
+    enable_tracing=False
+)
+```
+
 ## Roadmap
 - [ ] Allow users to customize full system prompt
 - [ ] Code cleanliness (type hinting, docstrings, formating)

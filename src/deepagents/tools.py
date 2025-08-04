@@ -7,6 +7,9 @@ import psycopg2
 import asyncpg
 import asyncio
 from contextlib import asynccontextmanager
+import logging
+
+logger = logging.getLogger(__name__)
 
 from deepagents.prompts import (
     WRITE_TODOS_DESCRIPTION,
@@ -38,6 +41,7 @@ def postgres_query(
     limit: int = 1000,
 ) -> str:
     """Execute a SELECT query against the PostgreSQL database. Only read operations are allowed."""
+    logger.info(f"Executing PostgreSQL query: {query[:100]}{'...' if len(query) > 100 else ''}")
     try:
         db_connection = state.get("db_connection")
         if not db_connection:
@@ -98,9 +102,12 @@ def postgres_query(
         result_lines.append("")
         result_lines.append(f"Total rows returned: {len(results)}")
         
-        return "\n".join(result_lines)
+        result_str = "\n".join(result_lines)
+        logger.info(f"PostgreSQL query executed successfully, returned {len(results)} rows")
+        return result_str
         
     except Exception as e:
+        logger.error(f"Error executing PostgreSQL query: {str(e)}")
         return f"Error executing query: {str(e)}"
 
 
@@ -112,6 +119,7 @@ def postgres_schema(
     table_name: str = None,
 ) -> str:
     """Get schema information for PostgreSQL database tables."""
+    logger.info(f"Getting PostgreSQL schema for table: {table_name or 'all tables'}")
     try:
         db_connection = state.get("db_connection")
         if not db_connection:
@@ -163,9 +171,12 @@ def postgres_schema(
         cursor.close()
         conn.close()
         
-        return "\n".join(result_lines)
+        result_str = "\n".join(result_lines)
+        logger.info(f"PostgreSQL schema retrieved successfully")
+        return result_str
         
     except Exception as e:
+        logger.error(f"Error getting PostgreSQL schema: {str(e)}")
         return f"Error getting schema: {str(e)}"
 
 
@@ -176,6 +187,7 @@ def postgres_analyze(
     analysis_type: str = "basic",
 ) -> str:
     """Perform analysis on PostgreSQL database tables to get insights like row counts, data distribution, etc."""
+    logger.info(f"Performing PostgreSQL analysis on table: {table_name or 'all tables'}, type: {analysis_type}")
     try:
         db_connection = state.get("db_connection")
         if not db_connection:
@@ -291,7 +303,10 @@ def postgres_analyze(
         cursor.close()
         conn.close()
         
-        return "\n".join(result_lines)
+        result_str = "\n".join(result_lines)
+        logger.info(f"PostgreSQL analysis completed successfully")
+        return result_str
         
     except Exception as e:
+        logger.error(f"Error performing PostgreSQL analysis: {str(e)}")
         return f"Error performing analysis: {str(e)}"

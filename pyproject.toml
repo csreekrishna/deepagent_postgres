@@ -12,6 +12,9 @@ dependencies = [
     "langchain>=0.2.14",
     "psycopg2-binary>=2.9.0",
     "asyncpg>=0.29.0",
+    "arize-phoenix[evals]>=4.0.0",
+    "openinference-instrumentation-langchain>=0.1.0",
+    "langchain-community>=0.2.14",
 ]
 
 

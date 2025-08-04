@@ -2,6 +2,7 @@ from deepagents.sub_agent import _create_task_tool, SubAgent
 from deepagents.model import get_default_model, get_openai_model, get_anthropic_model
 from deepagents.tools import write_todos, postgres_query, postgres_schema, postgres_analyze
 from deepagents.state import DeepAgentState
+from deepagents.tracing import setup_phoenix_tracing
 from typing import Sequence, Union, Callable, Any, TypeVar, Type, Optional
 from langchain_core.tools import BaseTool
 from langchain_core.language_models import LanguageModelLike
@@ -43,6 +44,8 @@ def create_deep_agent(
     subagents: list[SubAgent] = None,
     state_schema: Optional[StateSchemaType] = None,
     db_connection_string: Optional[str] = None,
+    enable_tracing: bool = True,
+    tracing_project_name: str = "deepagent-postgres",
 ):
     """Create a deep agent.
 
@@ -62,7 +65,13 @@ def create_deep_agent(
                 - (optional) `tools`
         state_schema: The schema of the deep agent. Should subclass from DeepAgentState
         db_connection_string: PostgreSQL connection string (e.g., "postgresql://user:password@localhost:5432/dbname")
+        enable_tracing: Whether to enable Phoenix tracing (default: True)
+        tracing_project_name: Name for the Phoenix tracing project (default: "deepagent-postgres")
     """
+    # Initialize Phoenix tracing if enabled
+    if enable_tracing:
+        setup_phoenix_tracing(tracing_project_name)
+    
     prompt = instructions + base_prompt
     built_in_tools = [write_todos, postgres_query, postgres_schema, postgres_analyze]
     if model is None:
