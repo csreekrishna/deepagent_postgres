@@ -1,9 +1,11 @@
-# 🧠🤖Deep Agents
+# 🧠🗄️ Deep Agents - PostgreSQL Edition
 
 Using an LLM to call tools in a loop is the simplest form of an agent. 
 This architecture, however, can yield agents that are "shallow" and fail to plan and act over longer, more complex tasks. 
 Applications like "Deep Research", "Manus", and "Claude Code" have gotten around this limitation by implementing a combination of core components:
 a **planning tool**, **sub agents**, access to **persistent storage**, a **detailed prompt**, and **comprehensive observability**.
+
+> **🔥 This Version:** Specialized for **PostgreSQL database analysis** with **Phoenix tracing** - perfect for data analysts, researchers, and developers who need AI agents that can explore and analyze databases with full observability.
 
 ```mermaid
 graph TB
@@ -51,15 +53,64 @@ graph TB
 - **🗄️ PostgreSQL Tools** for read-only database operations
 - **🔭 Phoenix Tracing** for comprehensive observability
 
-`deepagents` is a Python package that implements these components in a general purpose way so that you can easily create a Deep Agent for your application. This version has been transformed to use **PostgreSQL database tools** with **Phoenix tracing** for robust data analysis and comprehensive observability.
+This **PostgreSQL Edition** of `deepagents` implements these components specifically for database analysis workflows. Unlike the original file system version, this edition provides:
+
+- **🗄️ Read-only PostgreSQL tools** for safe database exploration
+- **🔭 Phoenix tracing** for complete LLM and database operation observability  
+- **🔒 Security-first approach** preventing any database modifications
+- **📊 Advanced analytics** with table statistics and schema analysis
 
 **Acknowledgements: This project was primarily inspired by Claude Code, and initially was largely an attempt to see what made Claude Code general purpose, and make it even more so.**
 
 ## Installation
 
+> **⚠️ Important:** This is a specialized PostgreSQL + Phoenix tracing version of DeepAgents. The original `pip install deepagents` installs a different version with file system tools.
+
+### Install This PostgreSQL Version
+
 ```bash
-pip install deepagents
+# Clone this specific repository
+git clone https://github.com/csreekrishna/deepagent_postgres.git
+cd deepagent_postgres
+
+# Install in development mode
+pip install -e .
 ```
+
+### Prerequisites
+
+- **Python 3.11+**
+- **PostgreSQL database** (local or remote)
+- **OpenAI API key** or **Anthropic API key**
+
+```bash
+# Set your API key (choose one)
+export OPENAI_API_KEY="your-openai-key"
+# OR
+export ANTHROPIC_API_KEY="your-anthropic-key"
+```
+
+### Quick Setup with Docker PostgreSQL
+
+```bash
+# Start PostgreSQL with sample data (included in this repo)
+docker run -d \
+  --name deepagent-postgres \
+  -e POSTGRES_DB=deepagent_test \
+  -e POSTGRES_USER=deepagent \
+  -e POSTGRES_PASSWORD=test123 \
+  -p 5432:5432 \
+  postgres:15
+
+# Load sample e-commerce data
+docker cp sample_data.sql deepagent-postgres:/tmp/
+docker exec deepagent-postgres psql -U deepagent -d deepagent_test -f /tmp/sample_data.sql
+
+# Test the connection
+python test_phoenix_tracing.py
+```
+
+The test will start Phoenix dashboard at `http://localhost:6006` for observability.
 
 ## Usage
 
@@ -72,7 +123,7 @@ from deepagents import create_deep_agent
 # Database connection string - modify to match your PostgreSQL setup
 db_connection_string = os.getenv(
     "DATABASE_URL", 
-    "postgresql://username:password@localhost:5432/your_database"
+    "postgresql://deepagent:test123@localhost:5432/deepagent_test"
 )
 
 # Instructions for the database agent
@@ -146,14 +197,14 @@ You can analyze research data stored in the PostgreSQL database using read-only 
 agent = create_deep_agent(
     [internet_search],
     research_instructions,
-    db_connection_string="postgresql://user:password@localhost:5432/research_db"
+    db_connection_string="postgresql://deepagent:test123@localhost:5432/deepagent_test"
 )
 
 # Invoke the agent
 result = agent.invoke({"messages": [{"role": "user", "content": "Research LangGraph and analyze any related data in the database"}]})
 ```
 
-See [examples/research/research_agent.py](examples/research/research_agent.py) for a more complex example.
+See `test_phoenix_tracing.py` in this repository for a complete working example with Phoenix tracing.
 
 The agent created with `create_deep_agent` is just a LangGraph graph - so you can interact with it (streaming, human-in-the-loop, memory, studio)
 in the same way you would any LangGraph agent.
@@ -268,7 +319,7 @@ Format: `"postgresql://username:password@host:port/database_name"`
 agent = create_deep_agent(
     tools=[],
     instructions="Database assistant instructions...",
-    db_connection_string="postgresql://user:password@localhost:5432/mydb"
+    db_connection_string="postgresql://deepagent:test123@localhost:5432/deepagent_test"
 )
 
 # With custom model and database
@@ -278,7 +329,7 @@ agent = create_deep_agent(
     tools=[],
     instructions="Advanced database analyst...",
     model=get_openai_model(model_name="gpt-4o", temperature=0),
-    db_connection_string="postgresql://analyst:secret@db.company.com:5432/analytics"
+    db_connection_string="postgresql://deepagent:test123@localhost:5432/deepagent_test"
 )
 ```
 
@@ -290,7 +341,7 @@ The below components are built into `deepagents` and helps make it work for deep
 
 `deepagents` comes with a [built-in system prompt](src/deepagents/prompts.py). This is relatively detailed prompt that is heavily based on and inspired by [attempts](https://github.com/kn1026/cc/blob/main/claudecode.md) to [replicate](https://github.com/asgeirtj/system_prompts_leaks/blob/main/Anthropic/claude-code.md)
 Claude Code's system prompt. It was made more general purpose than Claude Code's system prompt.
-This contains detailed instructions for how to use the built-in planning tool, file system tools, and sub agents.
+This contains detailed instructions for how to use the built-in planning tool, PostgreSQL database tools, and sub agents.
 Note that part of this system prompt [can be customized](#promptprefix--required-)
 
 Without this default system prompt - the agent would not be nearly as successful at going as it is.
@@ -414,7 +465,7 @@ agent = create_deep_agent(
 ## Roadmap
 - [ ] Allow users to customize full system prompt
 - [ ] Code cleanliness (type hinting, docstrings, formating)
-- [ ] Allow for more of a robust virtual filesystem
+- [ ] Add more advanced PostgreSQL analysis capabilities
 - [ ] Create an example of a deep coding agent built on top of this
-- [ ] Benchmark the example of [deep research agent](examples/research/research_agent.py)
+- [ ] Benchmark PostgreSQL analysis performance with different database sizes
 - [ ] Add human-in-the-loop support for tools
