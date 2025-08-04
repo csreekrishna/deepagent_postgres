@@ -169,21 +169,72 @@ agent = create_deep_agent(
 
 ### `model` (Optional)
 
-By default, `deepagents` will use `"claude-sonnet-4-20250514"`. If you want to use a different model,
-you can pass a [LangChain model object](https://python.langchain.com/docs/integrations/chat/).
+By default, `deepagents` will use OpenAI GPT-4o if `OPENAI_API_KEY` is set, otherwise Claude Sonnet 4. You can pass any [LangChain model object](https://python.langchain.com/docs/integrations/chat/) to use a different model.
+
+**Built-in Model Functions:**
+```python
+from deepagents import get_openai_model, get_anthropic_model
+
+# Use specific OpenAI model
+agent = create_deep_agent(
+    tools=[],
+    instructions="Your instructions...",
+    model=get_openai_model(model_name="gpt-4o", temperature=0.1)
+)
+
+# Use specific Anthropic model  
+agent = create_deep_agent(
+    tools=[],
+    instructions="Your instructions...",
+    model=get_anthropic_model(model_name="claude-3-5-sonnet-20241022")
+)
+```
+
+**Custom LangChain Models:**
+```python
+from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+# Custom OpenAI model
+custom_openai = ChatOpenAI(model="gpt-4o-mini", temperature=0.5)
+
+# Custom Anthropic model
+custom_anthropic = ChatAnthropic(model="claude-3-haiku-20240307")
+
+# Google Gemini model
+custom_gemini = ChatGoogleGenerativeAI(model="gemini-pro")
+
+agent = create_deep_agent(
+    tools=[],
+    instructions="Your instructions...",
+    model=custom_openai  # or custom_anthropic, custom_gemini, etc.
+)
+```
 
 ### `db_connection_string` (Optional)
 
-A PostgreSQL connection string to enable database tools. When provided, the agent will have access to `postgres_query`, `postgres_execute`, and `postgres_schema` tools.
+A PostgreSQL connection string to enable database tools. When provided, the agent will have access to `postgres_query`, `postgres_schema`, and `postgres_analyze` tools.
 
 Format: `"postgresql://username:password@host:port/database_name"`
 
-Example:
+**Examples:**
 ```python
+# Basic database connection
 agent = create_deep_agent(
     tools=[],
     instructions="Database assistant instructions...",
     db_connection_string="postgresql://user:password@localhost:5432/mydb"
+)
+
+# With custom model and database
+from deepagents import get_openai_model
+
+agent = create_deep_agent(
+    tools=[],
+    instructions="Advanced database analyst...",
+    model=get_openai_model(model_name="gpt-4o", temperature=0),
+    db_connection_string="postgresql://analyst:secret@db.company.com:5432/analytics"
 )
 ```
 
