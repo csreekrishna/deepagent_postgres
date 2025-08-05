@@ -21,7 +21,7 @@ class State(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
 
 def create_deepagent_node():
-    \"\"\"Create the DeepAgent PostgreSQL node\"\"\"
+    """Create the DeepAgent PostgreSQL node"""
     
     # Get database connection from environment
     db_connection_string = os.getenv(
@@ -30,7 +30,7 @@ def create_deepagent_node():
     )
     
     # Instructions for the database agent
-    instructions = \"\"\"You are a database analyst that helps users explore and analyze their PostgreSQL database.
+    instructions = """You are a database analyst that helps users explore and analyze their PostgreSQL database.
 
 You can:
 - Query data from tables using postgres_query (SELECT statements only)  
@@ -40,7 +40,7 @@ You can:
 
 Always use postgres_schema first to understand the database structure before writing queries.
 All operations are read-only - you cannot modify the database in any way.
-\"\"\"
+"""
     
     # Create the DeepAgent
     agent = create_deep_agent(
@@ -57,7 +57,7 @@ All operations are read-only - you cannot modify the database in any way.
 deepagent = create_deepagent_node()
 
 def call_deepagent(state: State, config: RunnableConfig) -> Dict[str, Any]:
-    \"\"\"Call the DeepAgent with the current state\"\"\"
+    """Call the DeepAgent with the current state"""
     response = deepagent.invoke(state, config)
     return {"messages": response["messages"]}
 
